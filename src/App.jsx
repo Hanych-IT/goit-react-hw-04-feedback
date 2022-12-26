@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import React from 'react';
 import { Container } from 'components/container';
 import { Header } from 'components/header';
@@ -6,57 +7,48 @@ import { FeedbackOptions } from 'components/feedbackOptions';
 import { Statistics } from 'components/statistics';
 import { Notification } from 'components/notification';
 
-export class App extends React.Component {
-  state = {
+export const App = () => {
+  const [feedback, setFeedback] = useState({
     good: 0,
     neutral: 0,
     bad: 0,
-  };
+  });
 
-  handleSetFeedback = e => {
-    const { id } = e.target;
-    this.setState(prevState => ({
-      [id]: prevState[id] + 1,
+  const options = Object.keys(feedback);
+
+  const handleSetFeedback = option =>
+    setFeedback(prevState => ({
+      ...prevState,
+      [option]: prevState[option] + 1,
     }));
-  };
 
-  countTotalFeedback = () => {
-    const arrValues = Object.values(this.state);
-    const total = arrValues.reduce((prev, current) => prev + current, 0);
-    return total;
-  };
+  const countTotalFeedback = () =>
+    Object.values(feedback).reduce((value, acc) => acc + value, 0);
 
-  countPositiveFeedbackPercentage = () => {
-    const { good } = this.state;
-    return good ? Math.round((good / this.countTotalFeedback()) * 100) : 0;
-  };
+  const countPositiveFeedbackPercentage = () =>
+    Math.round((feedback.good / countTotalFeedback()) * 100);
 
-  options = Object.keys(this.state);
-  render() {
-    const state = this.state;
-    const options = this.options;
-    return (
-      <Container>
-        <Header title={'Expresso Cafe Feedback Page'} />
-        <Section title={'Please leave feedback'}>
-          <FeedbackOptions
+  return (
+    <Container>
+      <Header title={'Expresso Cafe Feedback Page'} />
+      <Section title={'Please leave feedback'}>
+        <FeedbackOptions
+          options={options}
+          onLeaveFeedback={handleSetFeedback}
+        />
+      </Section>
+      <Section title={'Statistics'}>
+        {countTotalFeedback() > 0 ? (
+          <Statistics
             options={options}
-            onLeaveFeedback={this.handleSetFeedback}
+            values={feedback}
+            total={countTotalFeedback}
+            positivePercentage={countPositiveFeedbackPercentage}
           />
-        </Section>
-        <Section title={'Statistics'}>
-          {this.countTotalFeedback() > 0 ? (
-            <Statistics
-              options={options}
-              values={state}
-              total={this.countTotalFeedback}
-              positivePercentage={this.countPositiveFeedbackPercentage}
-            />
-          ) : (
-            <Notification message="There is no feedback" />
-          )}
-        </Section>
-      </Container>
-    );
-  }
-}
+        ) : (
+          <Notification message="There is no feedback" />
+        )}
+      </Section>
+    </Container>
+  );
+};
